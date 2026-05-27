@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Товар - ShopMart</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <a class="logo" href="index.html">Shop<span>Mart</span></a>
+      <nav>
+        <a href="index.html">Каталог</a>
+        <a href="cart.html">Корзина</a>
+      </nav>
+      <div class="header-actions">
+        <a href="cart.html" class="cart-btn">
+          🛒 Корзина
+          <span class="cart-count" id="cart-count" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRODUCT DETAIL -->
+  <main class="container">
+    <div class="product-detail" id="product-detail">
+      <!-- Рендерится через JS -->
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 ShopMart. Учебный проект - УП.02, специальность 09.02.07.</p>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Получаем id из URL
+    const params = new URLSearchParams(window.location.search);
+    const productId = parseInt(params.get('id'));
+    const product = PRODUCTS.find(p => p.id === productId);
+
+    const container = document.getElementById('product-detail');
+
+    if (!product) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:80px 0;color:var(--gray)">
+          <div style="font-size:64px;margin-bottom:20px">🔍</div>
+          <h2 style="font-family:var(--font-display);font-size:24px;color:var(--black);margin-bottom:12px">Товар не найден</h2>
+          <p>Возможно, он был удалён или ссылка неверна.</p>
+          <a href="index.html" style="display:inline-block;margin-top:20px;color:var(--accent)">← Вернуться в каталог</a>
+        </div>`;
+    } else {
+      document.title = `${product.name} - ShopMart`;
+
+      container.innerHTML = `
+        <nav class="breadcrumb">
+          <a href="index.html">Каталог</a>
+          <span>/</span>
+          <a href="index.html" onclick="sessionStorage.setItem('cat','${product.category_id}')">${product.category}</a>
+          <span>/</span>
+          <span style="color:var(--black)">${product.name}</span>
+        </nav>
+
+        <div class="product-detail-grid">
+          <div class="product-detail-img">${product.emoji}</div>
+
+          <div class="product-detail-info">
+            <div class="product-detail-category">${product.category}</div>
+            <h1 class="product-detail-name">${product.name}</h1>
+            <p class="product-detail-desc">${product.desc}</p>
+
+            <div class="product-detail-price">${formatPrice(product.price)}</div>
+            <div class="product-detail-stock">✓ В наличии: ${product.stock} шт.</div>
+
+            <div class="qty-row">
+              <span class="qty-label">Количество:</span>
+              <div class="qty-control">
+                <button class="qty-btn" id="qty-minus" onclick="changeQty(-1)">−</button>
+                <input class="qty-input" type="number" id="qty" value="1" min="1" max="${product.stock}" readonly>
+                <button class="qty-btn" id="qty-plus" onclick="changeQty(1)">+</button>
+              </div>
+            </div>
+
+            <button class="add-to-cart-btn" id="add-btn" onclick="addToCart()">
+              Добавить в корзину
+            </button>
+            <a href="cart.html" style="display:block;text-align:center;font-size:13px;color:var(--gray);margin-top:8px">
+              Перейти к оформлению →
+            </a>
+
+            <div class="product-meta">
+              <div class="meta-row">
+                <span class="meta-key">Категория</span>
+                <span class="meta-val">${product.category}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">Артикул</span>
+                <span class="meta-val">SM-${String(product.id).padStart(5,'0')}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">Доставка</span>
+                <span class="meta-val">1-3 рабочих дня</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">Гарантия</span>
+                <span class="meta-val">12 месяцев</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    let qty = 1;
+
+    function changeQty(delta) {
+      qty = Math.max(1, Math.min(product.stock, qty + delta));
+      document.getElementById('qty').value = qty;
+    }
+
+    function addToCart() {
+      Cart.add(product.id, qty);
+      const btn = document.getElementById('add-btn');
+      btn.textContent = '✓ Добавлено в корзину';
+      btn.classList.add('added');
+      showToast(`«${product.name}» добавлен в корзину`);
+      setTimeout(() => {
+        btn.textContent = 'Добавить в корзину';
+        btn.classList.remove('added');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
